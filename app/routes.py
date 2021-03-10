@@ -154,7 +154,7 @@ def account(username):
 @login_required
 def collection(username):
     user = User.query.filter_by(username=username).first_or_404()
-    heroes = Hero.query.filter_by(player=user)
+    heroes = Hero.query.options(joinedload('baseStats')).filter_by(player=user).all()
     return render_template('collection.html', user=user, heroes=heroes, title='Hero Collection', heroactive=1)
 
 

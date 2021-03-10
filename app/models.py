@@ -501,36 +501,10 @@ class Hero(db.Model):
     def progress(self):
         level = self.level
         medals = self.medals
-        # 10, 30, 80, 280, 880, 2380, 4880
-        if level == 0:
-            accumulated = 0
-            total = accumulated + medals
-        elif level == 1:
-            accumulated = 10
-            total = accumulated + medals
-        elif level == 2:
-            accumulated = 30
-            total = accumulated + medals
-        elif level == 3:
-            accumulated = 80
-            total = accumulated + medals
-        elif level == 4:
-            accumulated = 280
-            total = accumulated + medals
-        elif level == 5:
-            accumulated = 880
-            total = accumulated + medals
-        elif level == 6:
-            accumulated = 2380
-            total = accumulated + medals
-        elif level == 7:
-            accumulated = 4880
-            total = accumulated + medals
 
-        total = (total / 4880) * 100
-        if total == 100:
-            return int(total)
-        return round(total, 2)
+        total = accumulated_medals(level) + medals
+        perc = (total / 4880) * 100
+        return 100 if perc >= 100 else round(perc, 2)
 
     def __repr__(self):
         return '{}'.format(self.baseStats.name)
@@ -595,6 +569,9 @@ class Post(db.Model):
     def __repr__(self):
         return '<Post {}>'.format(self.body)
 
+def accumulated_medals(level):
+    sum_by_level = [0, 10, 30, 80, 280, 880, 2380, 4880]
+    return sum_by_level[level]
 
 def validate_level(level):
     if level < 0:
@@ -620,29 +597,12 @@ def validate_weapon(wpn, prev):
 
 
 def validate_medals(medals, level):
-    accumulated = 0     # 10, 30, 80, 280, 880, 2380, 4880
-    if level == 0:
-        medals = 0
-        return medals
-    elif level == 1:
-        accumulated = 10
-    elif level == 2:
-        accumulated = 30
-    elif level == 3:
-        accumulated = 80
-    elif level == 4:
-        accumulated = 280
-    elif level == 5:
-        accumulated = 880
-    elif level == 6:
-        accumulated = 2380
-    elif level == 7:
-        medals = 0
-        return medals
+    if level == 0 or level == 7:
+        return 0
+
+    accumulated = accumulated_medals(level)
     if accumulated + medals > 4880:
-        medals = 4880
-        medals -= accumulated
-        return medals
+        return 4880 - accumulated
     return medals
 
 
@@ -668,21 +628,7 @@ def total_medals(user, element):
     total = 0
     max_medals = 0
     for hero in heroes:
-        if hero.level == 1:
-            total += 10
-        elif hero.level == 2:
-            total += 30
-        elif hero.level == 3:
-            total += 80
-        elif hero.level == 4:
-            total += 280
-        elif hero.level == 5:
-            total += 880
-        elif hero.level == 6:
-            total += 2380
-        elif hero.level == 7:
-            total += 4880
-        total += hero.medals
+        total += hero.medals + accumulated_medals(hero.level)
         max_medals += 4880
     return total, max_medals
 
@@ -691,21 +637,7 @@ def rarity_medals(user, element, rarity):
     heroes = Hero.query.filter_by(player=user).join(Base).filter(Base.rarity == rarity, Base.element == element)
     total = 0
     for hero in heroes:
-        if hero.level == 1:
-            total += 10
-        elif hero.level == 2:
-            total += 30
-        elif hero.level == 3:
-            total += 80
-        elif hero.level == 4:
-            total += 280
-        elif hero.level == 5:
-            total += 880
-        elif hero.level == 6:
-            total += 2380
-        elif hero.level == 7:
-            total += 4880
-        total += hero.medals
+        total += hero.medals + accumulated_medals(hero.level)
     return total
 
 
