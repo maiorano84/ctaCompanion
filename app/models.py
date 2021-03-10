@@ -616,7 +616,6 @@ def hero_progress(user, element, rarity):
     for hero in heroes:
         count += 1
         total += hero.progress()
-    for hero in heroes:
         if hero.level == 7:
             maxed += 1
     # Return average progress within element and rarity, amount of maxed heroes and count within same.
